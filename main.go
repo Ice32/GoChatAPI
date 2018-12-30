@@ -1,34 +1,24 @@
 package main
 
 import (
-	r "gopkg.in/rethinkdb/rethinkdb-go.v5"
+	"bitbucket.org/KenanSelimovic/GoChatServer/api"
+	"bitbucket.org/KenanSelimovic/GoChatServer/storage"
 	"log"
-	"net/http"
 )
 
 const dbName string = "goChat"
 
 func main() {
-	session, err := r.Connect(r.ConnectOpts{
-		Address:  "localhost:28015",
-		Database: dbName,
-	})
+	dbConnection, err := storage.NewDbConnection(dbName)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	migrate(
-		session,
+	storage.Migrate(
+		dbConnection,
 		dbName,
 		[]string{"channels"},
 	)
 
-	router := NewRouter(session)
-
-	router.Handle(ChannelAdd, addChannel)
-	router.Handle(ChannelsSubscribe, subscribeForChannels)
-
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":3183", nil))
+	log.Fatal(api.StartServer(dbConnection))
 }
