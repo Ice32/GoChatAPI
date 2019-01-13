@@ -8,6 +8,12 @@ import (
 type Storage struct {
 	dbSession *r.Session
 }
+type OrderDirection int
+
+const (
+	ASC  OrderDirection = iota
+	DESC OrderDirection = iota
+)
 
 func (s Storage) GetOnChange(tableName string, receiver chan interface{}) error {
 	cursor, err := r.Table(tableName).Changes(r.ChangesOpts{IncludeInitial: true}).Run(s.dbSession)
@@ -17,6 +23,32 @@ func (s Storage) GetOnChange(tableName string, receiver chan interface{}) error 
 		return err
 	}
 	defer cursor.Close()
+
+	var value r.ChangeResponse
+	for cursor.Next(&value) {
+		receiver <- value.NewValue
+	}
+	return nil
+}
+func (s Storage) GetOnChangeWithOrder(tableName string, receiver chan interface{}, orderColumn string, orderDirection OrderDirection) error {
+	var query r.Term
+	if orderDirection == ASC {
+		query = r.Table(tableName).OrderBy(r.OrderByOpts{Index: r.Asc(orderColumn)})
+	} else {
+		query = r.Table(tableName).OrderBy(r.OrderByOpts{Index: r.Desc(orderColumn)})
+	}
+	cursor, err := query.Limit(1000).Changes(r.ChangesOpts{IncludeInitial: true}).Run(s.dbSession)
+
+	if err != nil {
+		helpers.LogError(err)
+		return err
+	}
+	defer func() {
+		err = cursor.Close()
+		if err != nil {
+			helpers.LogError(err)
+		}
+	}()
 
 	var value r.ChangeResponse
 	for cursor.Next(&value) {

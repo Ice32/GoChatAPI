@@ -17,7 +17,7 @@ func main() {
 	storage.Migrate(
 		dbConnection,
 		dbName,
-		[]string{"channels"},
+		[]string{"channels", "messages"},
 	)
 
 	log.Fatal(api.StartServer(dbConnection))

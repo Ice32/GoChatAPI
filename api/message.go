@@ -12,6 +12,8 @@ type EventType string
 const (
 	ChannelAdd        EventType = "ChannelAdd"
 	ChannelsSubscribe EventType = "ChannelSubscribe"
+	MessageAdd        EventType = "MessageAdd"
+	MessageSubscribe  EventType = "MessageSubscribe"
 	Error             EventType = "Error"
 )
 
@@ -19,6 +21,8 @@ func (et EventType) String() string {
 	names := map[EventType]string{
 		ChannelAdd:        "ChannelAdd",
 		ChannelsSubscribe: "ChannelSubscribe",
+		MessageAdd:        "MessageAdd",
+		MessageSubscribe:  "MessageSubscribe",
 		Error:             "Error",
 	}
 
@@ -44,4 +48,7 @@ func NewChannelsMessage(data interface{}) *Message {
 }
 func NewErrorMessage(data string) *Message {
 	return newMessage(Error, data)
+}
+func NewMessagesMessage(data interface{}) *Message {
+	return newMessage(MessageAdd, data)
 }

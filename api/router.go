@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bitbucket.org/KenanSelimovic/GoChatServer/helpers"
 	"bitbucket.org/KenanSelimovic/GoChatServer/storage"
 	"fmt"
 	"github.com/gorilla/websocket"
@@ -37,14 +38,13 @@ func (router *Router) handleClient(client *Client) {
 
 	for {
 		if err := client.socket.ReadJSON(&message); err != nil {
+			helpers.LogError(err)
 			break
 		}
 		if handler := router.findHandler(message.Type); handler != nil {
-			(*handler)(client, message.Data)
+			go (*handler)(client, message.Data)
 		}
 	}
-
-	subscribeForChannels(client, nil)
 }
 
 func (router *Router) Handle(eventType EventType, socketHandler SocketHandler) {
