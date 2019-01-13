@@ -1,6 +1,9 @@
 package api
 
-import "bytes"
+import (
+	"bitbucket.org/KenanSelimovic/GoChatServer/api/types"
+	"bytes"
+)
 
 type Message struct {
 	Type EventType
@@ -43,7 +46,7 @@ func newMessage(eventType EventType, data interface{}) *Message {
 	}
 }
 
-func NewChannelsMessage(data interface{}) *Message {
+func NewChannelsMessage(data []types.Channel) *Message {
 	return newMessage(ChannelAdd, data)
 }
 func NewErrorMessage(data string) *Message {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bitbucket.org/KenanSelimovic/GoChatServer/api/types"
 	"bitbucket.org/KenanSelimovic/GoChatServer/helpers"
 	"github.com/mitchellh/mapstructure"
 	"time"
@@ -9,14 +10,14 @@ import (
 type SocketHandler func(client *Client, data interface{})
 
 func subscribeForChannels(client *Client, data interface{}) {
-	channelsChannel := make(chan string)
+	channelsChannel := make(chan types.Channel)
 	errorsChannel := make(chan string)
 	go NewStorageInterface(client.dbConnection).GetChannels(channelsChannel, errorsChannel)
 
 	for {
 		select {
-		case channelName := <-channelsChannel:
-			message := NewChannelsMessage([]string{channelName})
+		case channel := <-channelsChannel:
+			message := NewChannelsMessage([]types.Channel{channel})
 			client.channel <- message
 		case error := <-errorsChannel:
 			message := NewErrorMessage(error)

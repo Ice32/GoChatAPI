@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bitbucket.org/KenanSelimovic/GoChatServer/api/types"
 	"bitbucket.org/KenanSelimovic/GoChatServer/helpers"
 	"bitbucket.org/KenanSelimovic/GoChatServer/storage"
 	"github.com/mitchellh/mapstructure"
@@ -11,7 +12,7 @@ type StorageInterface struct {
 	dbConnection *storage.DbConnection
 }
 
-func (si StorageInterface) GetChannels(send chan string, errorChannel chan string) {
+func (si StorageInterface) GetChannels(send chan types.Channel, errorChannel chan string) {
 	storageInstance := storage.NewStorage(si.dbConnection)
 
 	channelChannel := make(chan interface{})
@@ -25,7 +26,10 @@ func (si StorageInterface) GetChannels(send chan string, errorChannel chan strin
 			errorChannel <- err.Error()
 		}
 
-		send <- newValue["name"]
+		send <- types.Channel{
+			Name: newValue["name"],
+			Id:   newValue["id"],
+		}
 	}
 }
 
@@ -55,7 +59,7 @@ func (si StorageInterface) GetMessages(send chan string, errorChannel chan strin
 }
 func (si StorageInterface) AddChannel(channel string) error {
 	storageInstance := storage.NewStorage(si.dbConnection)
-	err := storageInstance.Insert("channels", Channel{Name: channel})
+	err := storageInstance.Insert("channels", types.Channel{Name: channel})
 	return err
 }
 func (si StorageInterface) AddMessage(message ChatMessage) error {
