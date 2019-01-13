@@ -40,14 +40,19 @@ func addChannel(client *Client, data interface{}) {
 }
 
 func subscribeForMessages(client *Client, data interface{}) {
-	messagesChannel := make(chan string)
+	var channelId string
+	if err := mapstructure.Decode(data, &channelId); err != nil {
+		client.channel <- NewErrorMessage(err.Error())
+		return
+	}
+	messagesChannel := make(chan types.ChatMessage)
 	errorsChannel := make(chan string)
 	go NewStorageInterface(client.dbConnection).GetMessages(messagesChannel, errorsChannel)
 
 	for {
 		select {
-		case messageText := <-messagesChannel:
-			message := NewMessagesMessage([]string{messageText})
+		case chatMessage := <-messagesChannel:
+			message := NewMessagesMessage([]types.ChatMessage{chatMessage})
 			client.channel <- message
 		case error := <-errorsChannel:
 			message := NewErrorMessage(error)
@@ -64,7 +69,7 @@ func addMessage(client *Client, data interface{}) {
 		helpers.LogError(err)
 		client.channel <- NewErrorMessage(err.Error())
 	}
-	err := NewStorageInterface(client.dbConnection).AddMessage(ChatMessage{
+	err := NewStorageInterface(client.dbConnection).AddMessage(types.ChatMessage{
 		Text:      messageText,
 		CreatedAt: time.Now(),
 	})

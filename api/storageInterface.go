@@ -5,7 +5,6 @@ import (
 	"bitbucket.org/KenanSelimovic/GoChatServer/helpers"
 	"bitbucket.org/KenanSelimovic/GoChatServer/storage"
 	"github.com/mitchellh/mapstructure"
-	"time"
 )
 
 type StorageInterface struct {
@@ -33,7 +32,7 @@ func (si StorageInterface) GetChannels(send chan types.Channel, errorChannel cha
 	}
 }
 
-func (si StorageInterface) GetMessages(send chan string, errorChannel chan string) {
+func (si StorageInterface) GetMessages(send chan types.ChatMessage, errorChannel chan string) {
 	storageInstance := storage.NewStorage(si.dbConnection)
 
 	messagesChannel := make(chan interface{})
@@ -43,18 +42,14 @@ func (si StorageInterface) GetMessages(send chan string, errorChannel chan strin
 		"createdAt",
 		storage.ASC,
 	)
-	type newValueStruct struct {
-		Text      string
-		CreatedAt time.Time
-	}
-	var newValue newValueStruct
+	var newValue types.ChatMessage
 
 	for message := range messagesChannel {
 		if err := mapstructure.Decode(message, &newValue); err != nil {
 			helpers.LogError(err)
 			errorChannel <- err.Error()
 		}
-		send <- newValue.Text
+		send <- newValue
 	}
 }
 func (si StorageInterface) AddChannel(channel string) error {
@@ -62,7 +57,7 @@ func (si StorageInterface) AddChannel(channel string) error {
 	err := storageInstance.Insert("channels", types.Channel{Name: channel})
 	return err
 }
-func (si StorageInterface) AddMessage(message ChatMessage) error {
+func (si StorageInterface) AddMessage(message types.ChatMessage) error {
 	storageInstance := storage.NewStorage(si.dbConnection)
 	err := storageInstance.Insert("messages", message)
 	return err
