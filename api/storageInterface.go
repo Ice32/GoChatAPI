@@ -32,7 +32,7 @@ func (si StorageInterface) GetChannels(send chan types.Channel, errorChannel cha
 	}
 }
 
-func (si StorageInterface) GetMessages(channelId string, send chan types.ChatMessage, errorChannel chan string) {
+func (si StorageInterface) GetMessages(channelId string, send chan types.ChatMessage, errorChannel chan string, stopChannel chan bool) {
 	storageInstance := storage.NewStorage(si.dbConnection)
 
 	messagesChannel := make(chan interface{})
@@ -51,12 +51,17 @@ func (si StorageInterface) GetMessages(channelId string, send chan types.ChatMes
 	}()
 	var newValue types.ChatMessage
 
-	for message := range messagesChannel {
-		if err := mapstructure.Decode(message, &newValue); err != nil {
-			helpers.LogError(err)
-			errorChannel <- err.Error()
+	for {
+		select {
+		case message := <-messagesChannel:
+			if err := mapstructure.Decode(message, &newValue); err != nil {
+				helpers.LogError(err)
+				errorChannel <- err.Error()
+			}
+			send <- newValue
+		case <-stopChannel:
+			return
 		}
-		send <- newValue
 	}
 }
 func (si StorageInterface) AddChannel(channel string) error {
