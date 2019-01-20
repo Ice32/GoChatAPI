@@ -12,6 +12,7 @@ func StartServer(dbConnection *storage.DbConnection) error {
 	router.Handle(ChannelsSubscribe, subscribeForChannels)
 	router.Handle(MessageAdd, addMessage)
 	router.Handle(MessageSubscribe, subscribeForMessages)
+	router.Handle(MessageUnsubscribe, unsubscribeForMessages)
 
 	http.Handle("/", router)
 

@@ -63,6 +63,16 @@ func subscribeForMessages(client *Client, data interface{}) {
 	}
 }
 
+func unsubscribeForMessages(client *Client, data interface{}) {
+	var channelId string
+	if err := mapstructure.Decode(data, &channelId); err != nil {
+		client.channel <- NewErrorMessage(err.Error())
+		return
+	}
+
+	// TODO: implement
+}
+
 func addMessage(client *Client, data interface{}) {
 	var messageText string
 	if err := mapstructure.Decode(data, &messageText); err != nil {

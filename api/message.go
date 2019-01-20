@@ -13,20 +13,22 @@ type Message struct {
 type EventType string
 
 const (
-	ChannelAdd        EventType = "ChannelAdd"
-	ChannelsSubscribe EventType = "ChannelSubscribe"
-	MessageAdd        EventType = "MessageAdd"
-	MessageSubscribe  EventType = "MessageSubscribe"
-	Error             EventType = "Error"
+	ChannelAdd         EventType = "ChannelAdd"
+	ChannelsSubscribe  EventType = "ChannelSubscribe"
+	MessageAdd         EventType = "MessageAdd"
+	MessageSubscribe   EventType = "MessageSubscribe"
+	MessageUnsubscribe EventType = "MessageUnsubscribe"
+	Error              EventType = "Error"
 )
 
 func (et EventType) String() string {
 	names := map[EventType]string{
-		ChannelAdd:        "ChannelAdd",
-		ChannelsSubscribe: "ChannelSubscribe",
-		MessageAdd:        "MessageAdd",
-		MessageSubscribe:  "MessageSubscribe",
-		Error:             "Error",
+		ChannelAdd:         "ChannelAdd",
+		ChannelsSubscribe:  "ChannelSubscribe",
+		MessageAdd:         "MessageAdd",
+		MessageSubscribe:   "MessageSubscribe",
+		MessageUnsubscribe: "MessageUnsubscribe",
+		Error:              "Error",
 	}
 
 	return names[et]
