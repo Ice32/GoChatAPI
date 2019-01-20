@@ -32,16 +32,23 @@ func (si StorageInterface) GetChannels(send chan types.Channel, errorChannel cha
 	}
 }
 
-func (si StorageInterface) GetMessages(send chan types.ChatMessage, errorChannel chan string) {
+func (si StorageInterface) GetMessages(channelId string, send chan types.ChatMessage, errorChannel chan string) {
 	storageInstance := storage.NewStorage(si.dbConnection)
 
 	messagesChannel := make(chan interface{})
-	go storageInstance.GetOnChangeWithOrder(
-		"messages",
-		messagesChannel,
-		"createdAt",
-		storage.ASC,
-	)
+	go func() {
+		err := storageInstance.GetOnChangeWithOrderAndFilter(
+			"messages",
+			messagesChannel,
+			"createdAt",
+			storage.ASC,
+			"channelId",
+			channelId,
+		)
+		if err != nil {
+			helpers.LogError(err)
+		}
+	}()
 	var newValue types.ChatMessage
 
 	for message := range messagesChannel {
@@ -57,7 +64,7 @@ func (si StorageInterface) AddChannel(channel string) error {
 	err := storageInstance.Insert("channels", types.Channel{Name: channel})
 	return err
 }
-func (si StorageInterface) AddMessage(message types.ChatMessage) error {
+func (si StorageInterface) AddMessage(message types.NewChatMessage) error {
 	storageInstance := storage.NewStorage(si.dbConnection)
 	err := storageInstance.Insert("messages", message)
 	return err

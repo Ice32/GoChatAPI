@@ -56,6 +56,32 @@ func (s Storage) GetOnChangeWithOrder(tableName string, receiver chan interface{
 	}
 	return nil
 }
+func (s Storage) GetOnChangeWithOrderAndFilter(tableName string, receiver chan interface{}, orderColumn string, orderDirection OrderDirection, filterField string, filterValue interface{}) error {
+	query := r.Table(tableName)
+	if orderDirection == ASC {
+		query = query.OrderBy(r.OrderByOpts{Index: r.Asc(orderColumn)})
+	} else {
+		query = query.OrderBy(r.OrderByOpts{Index: r.Desc(orderColumn)})
+	}
+	cursor, err := query.Filter(r.Row.Field(filterField).Eq(filterValue)).Limit(1000).Changes(r.ChangesOpts{IncludeInitial: true}).Run(s.dbSession)
+
+	if err != nil {
+		helpers.LogError(err)
+		return err
+	}
+	defer func() {
+		err = cursor.Close()
+		if err != nil {
+			helpers.LogError(err)
+		}
+	}()
+
+	var value r.ChangeResponse
+	for cursor.Next(&value) {
+		receiver <- value.NewValue
+	}
+	return nil
+}
 func (s Storage) Insert(tableName string, data interface{}) error {
 	_, err := r.Table(tableName).Insert(data).RunWrite(s.dbSession)
 	return err

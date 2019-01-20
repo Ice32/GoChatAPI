@@ -8,6 +8,10 @@ import (
 )
 
 type SocketHandler func(client *Client, data interface{})
+type NewMessageData struct {
+	Text      string
+	ChannelId string
+}
 
 func subscribeForChannels(client *Client, data interface{}) {
 	channelsChannel := make(chan types.Channel)
@@ -47,7 +51,7 @@ func subscribeForMessages(client *Client, data interface{}) {
 	}
 	messagesChannel := make(chan types.ChatMessage)
 	errorsChannel := make(chan string)
-	go NewStorageInterface(client.dbConnection).GetMessages(messagesChannel, errorsChannel)
+	go NewStorageInterface(client.dbConnection).GetMessages(channelId, messagesChannel, errorsChannel)
 
 	for {
 		select {
@@ -74,16 +78,18 @@ func unsubscribeForMessages(client *Client, data interface{}) {
 }
 
 func addMessage(client *Client, data interface{}) {
-	var messageText string
-	if err := mapstructure.Decode(data, &messageText); err != nil {
+	var message NewMessageData
+	if err := mapstructure.Decode(data, &message); err != nil {
 		helpers.LogError(err)
 		client.channel <- NewErrorMessage(err.Error())
 	}
-	err := NewStorageInterface(client.dbConnection).AddMessage(types.ChatMessage{
-		Text:      messageText,
+	err := NewStorageInterface(client.dbConnection).AddMessage(types.NewChatMessage{
+		Text:      message.Text,
+		ChannelId: message.ChannelId,
 		CreatedAt: time.Now(),
 	})
 	if err != nil {
+		helpers.LogError(err)
 		client.channel <- NewErrorMessage(err.Error())
 	}
 }
