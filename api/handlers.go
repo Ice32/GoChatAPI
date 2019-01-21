@@ -11,6 +11,7 @@ type SocketHandler func(client *Client, data interface{})
 type NewMessageData struct {
 	Text      string
 	ChannelId string
+	Username  string
 }
 
 func subscribeForChannels(client *Client, data interface{}) {
@@ -85,11 +86,16 @@ func addMessage(client *Client, data interface{}) {
 		helpers.LogError(err)
 		client.channel <- NewErrorMessage(err.Error())
 	}
-	err := NewStorageInterface(client.dbConnection).AddMessage(types.NewChatMessage{
+	newChatMessage := types.NewChatMessage{
 		Text:      message.Text,
 		ChannelId: message.ChannelId,
 		CreatedAt: time.Now(),
-	})
+		Author:    message.Username,
+	}
+	if newChatMessage.Author == "" {
+		newChatMessage.Author = "Anonymous"
+	}
+	err := NewStorageInterface(client.dbConnection).AddMessage(newChatMessage)
 	if err != nil {
 		helpers.LogError(err)
 		client.channel <- NewErrorMessage(err.Error())
