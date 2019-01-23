@@ -66,7 +66,7 @@ func (si StorageInterface) GetMessages(channelId string, send chan types.ChatMes
 }
 func (si StorageInterface) AddChannel(channel string) error {
 	storageInstance := storage.NewStorage(si.dbConnection)
-	err := storageInstance.Insert("channels", types.Channel{Name: channel})
+	err := storageInstance.Insert("channels", types.NewChannel{Name: channel})
 	return err
 }
 func (si StorageInterface) AddMessage(message types.NewChatMessage) error {
