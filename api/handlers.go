@@ -50,9 +50,10 @@ func subscribeForMessages(client *Client, data interface{}) {
 		client.channel <- NewErrorMessage(err.Error())
 		return
 	}
+	messagesStopChannel := client.newMessageStopChannel(channelId)
 	messagesChannel := make(chan types.ChatMessage)
 	errorsChannel := make(chan string)
-	go NewStorageInterface(client.dbConnection).GetMessages(channelId, messagesChannel, errorsChannel, client.messagesStopChannel)
+	go NewStorageInterface(client.dbConnection).GetMessages(channelId, messagesChannel, errorsChannel, messagesStopChannel)
 
 	for {
 		select {
@@ -63,7 +64,7 @@ func subscribeForMessages(client *Client, data interface{}) {
 			message := NewErrorMessage(error)
 			client.channel <- message
 		case <-client.stop:
-		case <-client.messagesStopChannel:
+		case <-messagesStopChannel:
 			return
 		}
 	}
@@ -76,7 +77,7 @@ func unsubscribeForMessages(client *Client, data interface{}) {
 		return
 	}
 	go func() {
-		client.messagesStopChannel <- true
+		client.messagesStopChannels[channelId] <- true
 	}()
 }
 

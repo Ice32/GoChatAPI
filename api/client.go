@@ -7,11 +7,11 @@ import (
 )
 
 type Client struct {
-	channel             chan *Message
-	stop                chan bool
-	messagesStopChannel chan bool
-	socket              *websocket.Conn
-	dbConnection        *storage.DbConnection
+	channel              chan *Message
+	stop                 chan bool
+	messagesStopChannels map[string]chan bool
+	socket               *websocket.Conn
+	dbConnection         *storage.DbConnection
 }
 
 func (c *Client) forwardFromChannelToSocket() {
@@ -25,13 +25,17 @@ func (c *Client) forwardFromChannelToSocket() {
 		helpers.LogError(err)
 	}
 }
+func (c *Client) newMessageStopChannel(channelId string) chan bool {
+	c.messagesStopChannels[channelId] = make(chan bool)
+	return c.messagesStopChannels[channelId]
+}
 
 func NewClient(socket *websocket.Conn, dbConnection *storage.DbConnection) *Client {
 	return &Client{
-		socket:              socket,
-		channel:             make(chan *Message),
-		messagesStopChannel: make(chan bool),
-		stop:                make(chan bool),
-		dbConnection:        dbConnection,
+		socket:               socket,
+		channel:              make(chan *Message),
+		messagesStopChannels: make(map[string]chan bool),
+		stop:                 make(chan bool),
+		dbConnection:         dbConnection,
 	}
 }
