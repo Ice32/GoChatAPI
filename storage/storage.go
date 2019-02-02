@@ -3,6 +3,7 @@ package storage
 import (
 	"bitbucket.org/KenanSelimovic/GoChatServer/helpers"
 	r "gopkg.in/rethinkdb/rethinkdb-go.v5"
+	"os"
 )
 
 type Storage struct {
@@ -11,8 +12,8 @@ type Storage struct {
 type OrderDirection int
 
 const (
-	ASC  OrderDirection = iota
-	DESC OrderDirection = iota
+	ASC OrderDirection = iota
+	DESC
 )
 
 func (s Storage) GetOnChange(tableName string, receiver chan interface{}) error {
@@ -96,8 +97,12 @@ func NewStorage(session *r.Session) *Storage {
 type DbConnection = r.Session
 
 func NewDbConnection(dbName string) (*DbConnection, error) {
+	dbUrl := os.Getenv("DB_HOST")
+	if dbUrl == "" {
+		dbUrl = "localhost:28015"
+	}
 	return r.Connect(r.ConnectOpts{
-		Address:  "localhost:28015",
+		Address:  dbUrl,
 		Database: dbName,
 	})
 }
