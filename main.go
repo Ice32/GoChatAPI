@@ -18,6 +18,9 @@ func main() {
 		dbConnection,
 		dbName,
 		[]string{"channels", "messages"},
+		map[string][]string{
+			"messages": {"createdAt"},
+		},
 	)
 
 	log.Fatal(api.StartServer(dbConnection))

@@ -6,9 +6,10 @@ import (
 	"log"
 )
 
-func Migrate(session *r.Session, dbName string, tables []string) {
+func Migrate(session *r.Session, dbName string, tables []string, indexes map[string][]string) {
 	migrateDatabase(session, dbName)
 	migrateTables(session, tables)
+	migrateIndexes(session, indexes)
 }
 
 func migrateDatabase(session *r.Session, dbName string) {
@@ -39,6 +40,13 @@ func migrateTables(session *r.Session, tables []string) {
 			if err != nil {
 				log.Fatal(err)
 			}
+		}
+	}
+}
+func migrateIndexes(session *r.Session, indexes map[string][]string) {
+	for table, indexes := range indexes {
+		for _, index := range indexes {
+			_ = r.Table(table).IndexCreate(index).Exec(session)
 		}
 	}
 }

@@ -9,5 +9,5 @@ RUN apk add --no-cache git mercurial
 RUN go get -d -v ./...
 RUN go install -v ./...
 
-EXPOSE 6000
+EXPOSE 3183
 CMD ["GoChatServer"]
